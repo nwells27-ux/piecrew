@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "736399794122",
+    "project_id": "piecrew-9fb0f",
+    "storage_bucket": "piecrew-9fb0f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:736399794122:android:c5b41aa8d2134df15e7933",
+        "android_client_info": {
+          "package_name": "com.yourpie.piecrew"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAld-yJjh-cZMzeoaCAuBGLsWXxa_9fLq4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

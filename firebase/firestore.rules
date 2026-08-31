@@ -1,0 +1,95 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function userDoc() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function myLocationId() {
+      return userDoc().locationId;
+    }
+
+    function isManagerOrOwner() {
+      return userDoc().role == 'manager' || userDoc().role == 'owner';
+    }
+
+    // Users can read their own profile and profiles at their own location.
+    // Only the user themself (or an owner/manager) can write it.
+    match /users/{uid} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && (request.auth.uid == uid || isManagerOrOwner());
+    }
+
+    match /locations/{locationId} {
+      allow read: if isSignedIn();
+      allow write: if false; // managed via admin console / seed script only
+    }
+
+    // Announcements are scoped to the reader's own location.
+    // Only managers/owners can create or delete them.
+    match /announcements/{announcementId} {
+      allow read: if isSignedIn() && resource.data.locationId == myLocationId();
+      allow create: if isSignedIn()
+                    && request.resource.data.locationId == myLocationId()
+                    && isManagerOrOwner();
+      allow update: if isSignedIn() && resource.data.locationId == myLocationId();
+      allow delete: if isSignedIn()
+                    && resource.data.locationId == myLocationId()
+                    && isManagerOrOwner();
+    }
+
+    match /tasks/{taskId} {
+      allow read: if isSignedIn() && resource.data.locationId == myLocationId();
+      allow create: if isSignedIn() && request.resource.data.locationId == myLocationId() && isManagerOrOwner();
+      allow update: if isSignedIn() && resource.data.locationId == myLocationId() && isManagerOrOwner();
+      allow delete: if isSignedIn() && resource.data.locationId == myLocationId() && isManagerOrOwner();
+
+      match /completions/{periodKey} {
+        allow read: if isSignedIn() && get(/databases/$(database)/documents/tasks/$(taskId)).data.locationId == myLocationId();
+        allow write: if isSignedIn()
+                    && get(/databases/$(database)/documents/tasks/$(taskId)).data.locationId == myLocationId()
+                    && request.resource.data.completedBy == request.auth.uid;
+      }
+    }
+
+    match /maintenance_issues/{issueId} {
+      allow read: if isSignedIn() && resource.data.locationId == myLocationId();
+      allow create: if isSignedIn()
+                    && request.resource.data.locationId == myLocationId()
+                    && request.resource.data.reportedBy == request.auth.uid;
+      allow update: if isSignedIn() && resource.data.locationId == myLocationId() && isManagerOrOwner();
+      allow delete: if false;
+    }
+
+    match /manager_logs/{logId} {
+      allow read: if isSignedIn() && resource.data.locationId == myLocationId() && isManagerOrOwner();
+      allow create: if isSignedIn()
+                    && request.resource.data.locationId == myLocationId()
+                    && request.resource.data.authorId == request.auth.uid
+                    && isManagerOrOwner();
+      allow update, delete: if false;
+    }
+
+    // Chat channels + messages, scoped to the reader's own location.
+    match /channels/{channelId} {
+      allow read: if isSignedIn() && (!exists(/databases/$(database)/documents/channels/$(channelId)) || resource.data.locationId == myLocationId());
+      allow create: if isSignedIn() && request.resource.data.locationId == myLocationId();
+      allow write: if false;
+
+      match /messages/{messageId} {
+        allow read: if isSignedIn()
+                    && get(/databases/$(database)/documents/channels/$(channelId)).data.locationId == myLocationId();
+        allow create: if isSignedIn()
+                    && request.resource.data.senderId == request.auth.uid
+                    && get(/databases/$(database)/documents/channels/$(channelId)).data.locationId == myLocationId();
+        allow update, delete: if false;
+      }
+    }
+  }
+}
