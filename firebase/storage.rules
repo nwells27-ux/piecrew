@@ -1,0 +1,27 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function userDoc() {
+      return firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function isManagerOrOwner() {
+      return userDoc().role == 'manager' || userDoc().role == 'owner';
+    }
+
+    match /schedule_photos/{locationId}/{fileName} {
+      allow read: if isSignedIn() && userDoc().locationId == locationId;
+      allow write: if isSignedIn() && userDoc().locationId == locationId && isManagerOrOwner();
+    }
+
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

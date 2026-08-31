@@ -76,6 +76,22 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    match /shifts/{shiftId} {
+      allow read: if isSignedIn() && resource.data.locationId == myLocationId();
+      allow create: if isSignedIn() && request.resource.data.locationId == myLocationId() && isManagerOrOwner();
+      allow update: if isSignedIn() && resource.data.locationId == myLocationId() && isManagerOrOwner();
+      allow delete: if isSignedIn() && resource.data.locationId == myLocationId() && isManagerOrOwner();
+    }
+
+    match /schedule_photos/{photoId} {
+      allow read: if isSignedIn() && resource.data.locationId == myLocationId();
+      allow create: if isSignedIn()
+                    && request.resource.data.locationId == myLocationId()
+                    && request.resource.data.uploadedBy == request.auth.uid
+                    && isManagerOrOwner();
+      allow update, delete: if false;
+    }
+
     // Chat channels + messages, scoped to the reader's own location.
     match /channels/{channelId} {
       allow read: if isSignedIn() && (!exists(/databases/$(database)/documents/channels/$(channelId)) || resource.data.locationId == myLocationId());

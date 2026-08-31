@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../models/user_model.dart';
 import '../services/auth_service.dart';
 import 'announcements_screen.dart';
+import 'schedule_screen.dart';
 import 'tasks_screen.dart';
 import 'maintenance_screen.dart';
 import 'chat_screen.dart';
@@ -20,12 +21,13 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _index = 0;
 
-  static const _titles = ['Announcements', 'Tasks', 'Maintenance', 'Team Chat'];
+  static const _titles = ['Announcements', 'Schedule', 'Tasks', 'Maintenance', 'Team Chat'];
 
   @override
   Widget build(BuildContext context) {
     final screens = [
       AnnouncementsScreen(user: widget.user),
+      ScheduleScreen(user: widget.user),
       TasksScreen(user: widget.user),
       MaintenanceScreen(user: widget.user),
       ChatScreen(user: widget.user),
@@ -68,9 +70,10 @@ class _HomeScreenState extends State<HomeScreen> {
         selectedIndex: _index,
         onDestinationSelected: (i) => setState(() => _index = i),
         destinations: const [
-          NavigationDestination(icon: Icon(Icons.campaign_outlined), selectedIcon: Icon(Icons.campaign), label: 'Announcements'),
+          NavigationDestination(icon: Icon(Icons.campaign_outlined), selectedIcon: Icon(Icons.campaign), label: 'News'),
+          NavigationDestination(icon: Icon(Icons.calendar_today_outlined), selectedIcon: Icon(Icons.calendar_today), label: 'Schedule'),
           NavigationDestination(icon: Icon(Icons.checklist_outlined), selectedIcon: Icon(Icons.checklist), label: 'Tasks'),
-          NavigationDestination(icon: Icon(Icons.build_outlined), selectedIcon: Icon(Icons.build), label: 'Maintenance'),
+          NavigationDestination(icon: Icon(Icons.build_outlined), selectedIcon: Icon(Icons.build), label: 'Issues'),
           NavigationDestination(icon: Icon(Icons.chat_bubble_outline), selectedIcon: Icon(Icons.chat_bubble), label: 'Chat'),
         ],
       ),
