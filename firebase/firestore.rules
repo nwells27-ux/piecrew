@@ -22,7 +22,7 @@ service cloud.firestore {
     // Users can read their own profile and profiles at their own location.
     // Only the user themself (or an owner/manager) can write it.
     match /users/{uid} {
-      allow read: if isSignedIn();
+      allow read: if isSignedIn() && (request.auth.uid == uid || resource.data.locationId == myLocationId());
       allow write: if isSignedIn() && (request.auth.uid == uid || isManagerOrOwner());
     }
 
